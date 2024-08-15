@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, FlatList, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView, FlatList, Text, View, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import hstkFetch from '../../hstkFetch';
 
 const PartTwo = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -23,6 +24,10 @@ const PartTwo = () => {
     fetchPosts();
   }, []);
 
+  const filteredPosts = posts.filter(post =>
+    post.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const renderItem = ({ item }) => (
     <View style={styles.item}>
       <MaterialIcons name="article" size={24} color="black" style={styles.leftIcon} />
@@ -34,17 +39,32 @@ const PartTwo = () => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator style={styles.loadingIndicator} size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator style={styles.loadingIndicator} size="large" color="#0000ff" />
-      ) : (
-        <FlatList
-          data={posts}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by title"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
-      )}
+      </View>
+      <FlatList
+        data={filteredPosts}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        ListEmptyComponent={() => (
+          <Text style={styles.noResults}>No Results</Text>
+        )}
+      />
     </SafeAreaView>
   );
 };
@@ -55,6 +75,22 @@ const styles = StyleSheet.create({
   },
   loadingIndicator: {
     flex: 1,
+  },
+  searchContainer: {
+    backgroundColor: 'white',
+    paddingTop: 20,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  searchInput: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    marginBottom: 5,
   },
   item: {
     flexDirection: 'row',
@@ -79,6 +115,11 @@ const styles = StyleSheet.create({
   },
   rightIcon: {
     marginLeft: 'auto',
+  },
+  noResults: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
   },
 });
 
