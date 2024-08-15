@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import hstkFetch from '../../hstkFetch';
 
 const PartThreeDetail = ({ route }) => {
@@ -20,6 +21,12 @@ const PartThreeDetail = ({ route }) => {
         const commentsData = await commentsResponse.json();
         setPost(postData);
         setComments(commentsData);
+
+        // Load hidden comments from AsyncStorage
+        const storedHiddenComments = await AsyncStorage.getItem(`hiddenComments_${id}`);
+        if (storedHiddenComments) {
+          setHiddenComments(new Set(JSON.parse(storedHiddenComments)));
+        }
       } catch (error) {
         console.error('Error fetching post and comments:', error);
       } finally {
@@ -30,8 +37,14 @@ const PartThreeDetail = ({ route }) => {
     fetchPostAndComments();
   }, [id]);
 
-  const hideComment = (commentId) => {
-    setHiddenComments(prevHidden => new Set(prevHidden).add(commentId));
+  const hideComment = async (commentId) => {
+    const newHiddenComments = new Set(hiddenComments).add(commentId);
+    setHiddenComments(newHiddenComments);
+    try {
+      await AsyncStorage.setItem(`hiddenComments_${id}`, JSON.stringify(Array.from(newHiddenComments)));
+    } catch (error) {
+      console.error('Error saving hidden comments:', error);
+    }
   };
 
   const renderCommentItem = ({ item }) => {
