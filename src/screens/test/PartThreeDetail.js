@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import hstkFetch from '../../hstkFetch';
 
 const PartThreeDetail = ({ route }) => {
   const { id } = route.params;
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [hiddenComments, setHiddenComments] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +30,29 @@ const PartThreeDetail = ({ route }) => {
     fetchPostAndComments();
   }, [id]);
 
-  const renderCommentItem = ({ item }) => (
-    <View style={styles.commentItem}>
-      <Text style={styles.commentEmail}>{item.email}</Text>
-      <Text style={styles.commentBody}>{item.body}</Text>
-    </View>
-  );
+  const hideComment = (commentId) => {
+    setHiddenComments(prevHidden => new Set(prevHidden).add(commentId));
+  };
+
+  const renderCommentItem = ({ item }) => {
+    if (hiddenComments.has(item.id)) {
+      return null;
+    }
+    return (
+      <View style={styles.commentItem}>
+        <View style={styles.commentContent}>
+          <Text style={styles.commentEmail}>{item.email}</Text>
+          <Text style={styles.commentBody}>{item.body}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.hideButton}
+          onPress={() => hideComment(item.id)}
+        >
+          <Text style={styles.hideButtonText}>Hide</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -92,7 +110,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   commentItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  commentContent: {
+    flex: 1,
   },
   commentEmail: {
     fontSize: 14,
@@ -101,6 +128,16 @@ const styles = StyleSheet.create({
   },
   commentBody: {
     fontSize: 14,
+  },
+  hideButton: {
+    backgroundColor: '#ff6b6b',
+    padding: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  hideButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 
