@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, FlatList, Text, View, StyleSheet } from 'react-native';
+import { SafeAreaView, FlatList, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import hstkFetch from '../../hstkFetch';
 
 const PartTwo = () => {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -14,6 +15,8 @@ const PartTwo = () => {
         setPosts(data);
       } catch (error) {
         console.error('Error fetching posts:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -33,17 +36,24 @@ const PartTwo = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
+      {loading ? (
+        <ActivityIndicator style={styles.loadingIndicator} size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={posts}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+        />
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  loadingIndicator: {
     flex: 1,
   },
   item: {
